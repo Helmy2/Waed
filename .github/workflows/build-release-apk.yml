@@ -1,15 +1,19 @@
 name: Build Release APK
 
 on:
-  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+  workflow_dispatch:
   push:
     tags:
-      - 'v*' # Automatically runs if you push a tag like v1.0.0
+      - 'v*' # Triggers workflow when you push a tag like v1.0.0
 
 jobs:
-  build-release:
-    name: Build and Sign Release APK
+  build-and-release:
+    name: Build, Sign, and Release APK
     runs-on: ubuntu-latest
+
+    # Ensure the workflow has permission to create a release in your repository
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -53,9 +57,15 @@ jobs:
         if: always()
         run: rm -f keystore.jks
 
-      - name: Upload Signed APK
-        uses: actions/upload-artifact@v4
+      # Create a new GitHub Release
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Waed-Release-APK
-          path: app-release-signed.apk
-          retention-days: 7
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: app-release-signed.apk # Attaches the signed APK to the release
