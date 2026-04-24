@@ -27,8 +27,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.helmy2.waed.R
 import io.github.helmy2.waed.data.local.entity.CustomerRecord
 import io.github.helmy2.waed.ui.components.CustomerCard
 import io.github.helmy2.waed.ui.components.CustomerDialog
@@ -40,7 +42,7 @@ fun SearchScreen(
     onNavigateToDetail: (Long) -> Unit = {}
 ) {
     val viewModel: SearchViewModel = koinViewModel()
-    
+
     val searchQuery by viewModel.searchQuery.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
     val showDialog by viewModel.showDialog.collectAsState()
@@ -54,7 +56,7 @@ fun SearchScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Customer"
+                    contentDescription = stringResource(R.string.add_customer)
                 )
             }
         }
@@ -72,11 +74,11 @@ fun SearchScreen(
                         onSearch = { },
                         expanded = false,
                         onExpandedChange = { },
-                        placeholder = { Text("Search by name or page number") },
+                        placeholder = { Text(stringResource(R.string.search_by_name_or_page)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Search"
+                                contentDescription = stringResource(R.string.search)
                             )
                         },
                         trailingIcon = {
@@ -84,7 +86,7 @@ fun SearchScreen(
                                 IconButton(onClick = { viewModel.clearSearch() }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear"
+                                        contentDescription = stringResource(R.string.clear)
                                     )
                                 }
                             }
@@ -105,7 +107,7 @@ fun SearchScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Loading...",
+                            text = stringResource(R.string.loading),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -140,7 +142,12 @@ fun SearchScreen(
     if (showDialog) {
         CustomerDialog(
             customer = dialogCustomer,
-            error = dialogError,
+            error = dialogError?.let { error ->
+                when (error) {
+                    is DialogError.PageNumberTaken -> stringResource(R.string.page_number_already_in_use, error.pageNumber)
+                    is DialogError.SaveFailed -> error.message
+                }
+            },
             onDismiss = { viewModel.dismissDialog() },
             onSave = { viewModel.saveCustomer(it) }
         )
@@ -181,9 +188,9 @@ private fun EmptyState(
     ) {
         Text(
             text = if (showDefaultMessage) {
-                "Search by name or page number"
+                stringResource(R.string.search_by_name_or_page)
             } else {
-                "No customer found"
+                stringResource(R.string.no_customer_found)
             },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -203,7 +210,7 @@ private fun ErrorState(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Error: $message",
+            text = stringResource(R.string.error_message, message),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,

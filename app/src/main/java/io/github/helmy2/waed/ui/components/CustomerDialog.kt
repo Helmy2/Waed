@@ -13,8 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.github.helmy2.waed.R
 import io.github.helmy2.waed.data.local.entity.CustomerRecord
 
 @Composable
@@ -32,6 +34,12 @@ fun CustomerDialog(
     var customerNameError by remember { mutableStateOf<String?>(null) }
     var debitError by remember { mutableStateOf<String?>(null) }
 
+    val pageNumberRequired = stringResource(R.string.page_number_required)
+    val enterValidNumber = stringResource(R.string.enter_valid_number)
+    val nameRequired = stringResource(R.string.name_required)
+    val debitRequired = stringResource(R.string.debit_required)
+    val enterValidAmount = stringResource(R.string.enter_valid_amount)
+
     val isEdit = customer != null
 
     fun validate(): Boolean {
@@ -42,23 +50,23 @@ fun CustomerDialog(
         var isValid = true
 
         if (pageNumber.isBlank()) {
-            pageNumberError = "Page number is required"
+            pageNumberError = pageNumberRequired
             isValid = false
         } else if (pageNumber.toIntOrNull() == null) {
-            pageNumberError = "Enter a valid number"
+            pageNumberError = enterValidNumber
             isValid = false
         }
 
         if (customerName.isBlank()) {
-            customerNameError = "Name is required"
+            customerNameError = nameRequired
             isValid = false
         }
 
         if (debit.isBlank()) {
-            debitError = "Debit amount is required"
+            debitError = debitRequired
             isValid = false
         } else if (debit.toDoubleOrNull() == null) {
-            debitError = "Enter a valid amount"
+            debitError = enterValidAmount
             isValid = false
         }
 
@@ -68,7 +76,7 @@ fun CustomerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = if (isEdit) "Edit Customer" else "Add Customer")
+            Text(text = stringResource(if (isEdit) R.string.edit_customer else R.string.add_customer))
         },
         text = {
             Column(
@@ -81,7 +89,7 @@ fun CustomerDialog(
                         pageNumber = it.filter { char -> char.isDigit() }
                         pageNumberError = null
                     },
-                    label = { Text("Page Number") },
+                    label = { Text(stringResource(R.string.page_number)) },
                     isError = pageNumberError != null,
                     supportingText = pageNumberError?.let { { Text(it) } },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -95,7 +103,7 @@ fun CustomerDialog(
                         customerName = it
                         customerNameError = null
                     },
-                    label = { Text("Customer Name") },
+                    label = { Text(stringResource(R.string.customer_name)) },
                     isError = customerNameError != null,
                     supportingText = customerNameError?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
@@ -108,7 +116,7 @@ fun CustomerDialog(
                         debit = it.filter { char -> char.isDigit() || char == '.' }
                         debitError = null
                     },
-                    label = { Text("Debit Amount") },
+                    label = { Text(stringResource(R.string.debit_amount)) },
                     isError = debitError != null,
                     supportingText = debitError?.let { { Text(it) } },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -139,12 +147,12 @@ fun CustomerDialog(
                     }
                 }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

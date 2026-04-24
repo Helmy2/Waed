@@ -3,7 +3,6 @@ package io.github.helmy2.waed.ui.screen.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,8 +34,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.github.helmy2.waed.R
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import java.text.NumberFormat
@@ -51,28 +51,39 @@ fun CustomerDetailScreen(
     onNavigateBack: () -> Unit
 ) {
     val customer by viewModel.customer.collectAsState()
-    val isEditing by viewModel.isEditing.collectAsState()
+    val showEditDialog by viewModel.showEditDialog.collectAsState()
     val showDeleteDialog by viewModel.showDeleteDialog.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val saveError by viewModel.saveError.collectAsState()
 
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.hideDeleteConfirmation() },
-            title = { Text("Delete Customer") },
-            text = { Text("Are you sure you want to delete ${customer?.customerName}?") },
+            title = { Text(stringResource(R.string.delete_customer)) },
+            text = { Text(stringResource(R.string.are_you_sure_delete, customer?.customerName ?: "")) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         viewModel.deleteCustomer { onNavigateBack() }
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.hideDeleteConfirmation() }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
+            }
+        )
+    }
+
+    if (showEditDialog && customer != null) {
+        EditCustomerDialog(
+            customer = customer!!,
+            error = saveError,
+            onDismiss = { viewModel.hideEditDialog() },
+            onSave = { pageNumber, name, debit ->
+                viewModel.saveCustomer(pageNumber, name, debit) { }
             }
         )
     }
@@ -80,18 +91,12 @@ fun CustomerDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEditing) "Edit Customer" else "Customer Details") },
+                title = { Text(stringResource(R.string.customer_details)) },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (isEditing) {
-                            viewModel.cancelEditing()
-                        } else {
-                            onNavigateBack()
-                        }
-                    }) {
+                    IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 }
@@ -110,30 +115,15 @@ fun CustomerDetailScreen(
             return@Scaffold
         }
 
-        Column(
+        CustomerDetailsContent(
+            customer = customer!!,
+            onEdit = { viewModel.showEditDialog() },
+            onDelete = { viewModel.showDeleteConfirmation() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (isEditing) {
-                EditCustomerContent(
-                    customer = customer!!,
-                    error = error,
-                    onSave = { pageNumber, name, debit ->
-                        viewModel.saveCustomer(pageNumber, name, debit) { }
-                    },
-                    onCancel = { viewModel.cancelEditing() }
-                )
-            } else {
-                CustomerDetailsContent(
-                    customer = customer!!,
-                    onEdit = { viewModel.startEditing() },
-                    onDelete = { viewModel.showDeleteConfirmation() }
-                )
-            }
-        }
+                .padding(16.dp)
+        )
     }
 }
 
@@ -141,12 +131,16 @@ fun CustomerDetailScreen(
 private fun CustomerDetailsContent(
     customer: io.github.helmy2.waed.data.local.entity.CustomerRecord,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column {
-        DetailItem(label = "Customer Name", value = customer.customerName)
-        DetailItem(label = "Page Number", value = customer.pageNumber.toString())
-        DetailItem(label = "Debit Amount", value = formatCurrency(customer.debit))
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        DetailItem(label = stringResource(R.string.customer_name), value = customer.customerName)
+        DetailItem(label = stringResource(R.string.page_number), value = customer.pageNumber.toString())
+        DetailItem(label = stringResource(R.string.debit_amount), value = formatCurrency(customer.debit))
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -154,7 +148,7 @@ private fun CustomerDetailsContent(
             onClick = onEdit,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Edit")
+            Text(stringResource(R.string.edit))
         }
 
         OutlinedButton(
@@ -166,10 +160,10 @@ private fun CustomerDetailsContent(
         ) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Delete"
+                contentDescription = stringResource(R.string.delete)
             )
             Text(
-                text = "Delete Customer",
+                text = stringResource(R.string.delete_customer),
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -177,11 +171,11 @@ private fun CustomerDetailsContent(
 }
 
 @Composable
-private fun EditCustomerContent(
+private fun EditCustomerDialog(
     customer: io.github.helmy2.waed.data.local.entity.CustomerRecord,
-    error: String?,
-    onSave: (Int, String, Double) -> Unit,
-    onCancel: () -> Unit
+    error: SaveError?,
+    onDismiss: () -> Unit,
+    onSave: (Int, String, Double) -> Unit
 ) {
     var pageNumber by remember { mutableStateOf(customer.pageNumber.toString()) }
     var customerName by remember { mutableStateOf(customer.customerName) }
@@ -191,92 +185,104 @@ private fun EditCustomerContent(
     var customerNameError by remember { mutableStateOf<String?>(null) }
     var debitError by remember { mutableStateOf<String?>(null) }
 
-    OutlinedTextField(
-        value = pageNumber,
-        onValueChange = { pageNumber = it.filter { c -> c.isDigit() } },
-        label = { Text("Page Number") },
-        isError = pageNumberError != null,
-        supportingText = pageNumberError?.let { { Text(it) } },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true
-    )
+    val pageNumberRequired = stringResource(R.string.page_number_required)
+    val nameRequired = stringResource(R.string.name_required)
+    val debitRequired = stringResource(R.string.debit_required)
 
-    OutlinedTextField(
-        value = customerName,
-        onValueChange = { customerName = it },
-        label = { Text("Customer Name") },
-        isError = customerNameError != null,
-        supportingText = customerNameError?.let { { Text(it) } },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true
-    )
-
-    OutlinedTextField(
-        value = debit,
-        onValueChange = { debit = it.filter { c -> c.isDigit() || c == '.' } },
-        label = { Text("Debit Amount") },
-        isError = debitError != null,
-        supportingText = debitError?.let { { Text(it) } },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true
-    )
-
-    if (error != null) {
-        Text(
-            text = error,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
+    val errorMessage = when (error) {
+        is SaveError.PageNumberTaken -> stringResource(R.string.page_number_already_in_use, error.pageNumber)
+        is SaveError.SaveFailed -> error.message
+        null -> null
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.edit_customer)) },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = pageNumber,
+                    onValueChange = { pageNumber = it.filter { c -> c.isDigit() } },
+                    label = { Text(stringResource(R.string.page_number)) },
+                    isError = pageNumberError != null,
+                    supportingText = pageNumberError?.let { { Text(it) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        OutlinedButton(
-            onClick = onCancel,
-            modifier = Modifier.weight(1f)
-        ) {
-            Text("Cancel")
-        }
-        Button(
-            onClick = {
-                pageNumberError = null
-                customerNameError = null
-                debitError = null
+                OutlinedTextField(
+                    value = customerName,
+                    onValueChange = { customerName = it },
+                    label = { Text(stringResource(R.string.customer_name)) },
+                    isError = customerNameError != null,
+                    supportingText = customerNameError?.let { { Text(it) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-                var isValid = true
+                OutlinedTextField(
+                    value = debit,
+                    onValueChange = { debit = it.filter { c -> c.isDigit() || c == '.' } },
+                    label = { Text(stringResource(R.string.debit_amount)) },
+                    isError = debitError != null,
+                    supportingText = debitError?.let { { Text(it) } },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
 
-                if (pageNumber.isBlank()) {
-                    pageNumberError = "Page number is required"
-                    isValid = false
-                }
-                if (customerName.isBlank()) {
-                    customerNameError = "Name is required"
-                    isValid = false
-                }
-                if (debit.isBlank()) {
-                    debitError = "Debit is required"
-                    isValid = false
-                }
-
-                if (isValid) {
-                    onSave(
-                        pageNumber.toInt(),
-                        customerName.trim(),
-                        debit.toDouble()
+                errorMessage?.let {
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
-            },
-            modifier = Modifier.weight(1f)
-        ) {
-            Text("Save")
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    pageNumberError = null
+                    customerNameError = null
+                    debitError = null
+
+                    var isValid = true
+
+                    if (pageNumber.isBlank()) {
+                        pageNumberError = pageNumberRequired
+                        isValid = false
+                    }
+                    if (customerName.isBlank()) {
+                        customerNameError = nameRequired
+                        isValid = false
+                    }
+                    if (debit.isBlank()) {
+                        debitError = debitRequired
+                        isValid = false
+                    }
+
+                    if (isValid) {
+                        onSave(
+                            pageNumber.toInt(),
+                            customerName.trim(),
+                            debit.toDouble()
+                        )
+                    }
+                }
+            ) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
         }
-    }
+    )
 }
 
 @Composable
@@ -298,6 +304,6 @@ private fun DetailItem(
 }
 
 private fun formatCurrency(amount: Double): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("ar", "SA"))
+    val formatter = NumberFormat.getCurrencyInstance(Locale("ar", "EG"))
     return formatter.format(amount)
 }

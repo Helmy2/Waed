@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">وعد</string>
+    <string name="customer_name">اسم العميل</string>
+    <string name="page_number">رقم الصفحة</string>
+    <string name="debit_amount">مبلغ الدين</string>
+    <string name="add_customer">إضافة عميل</string>
+    <string name="edit_customer">تعديل العميل</string>
+    <string name="customer_details">بيانات العميل</string>
+    <string name="delete_customer">حذف العميل</string>
+    <string name="edit">تعديل</string>
+    <string name="delete">حذف</string>
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="search">بحث</string>
+    <string name="clear">مسح</string>
+    <string name="back">رجوع</string>
+    <string name="search_by_name_or_page">بحث بالاسم او رقم الصفحة</string>
+    <string name="no_customer_found">لم يتم العثور على عميل</string>
+    <string name="loading">جاري التحميل…</string>
+    <string name="page_number_already_in_use">رقم الصفحة %1$d مستخدم بالفعل</string>
+    <string name="failed_to_save">فشل في حفظ العميل</string>
+    <string name="failed_to_delete">فشل في حذف العميل</string>
+    <string name="are_you_sure_delete">هل انت متاكد من حذف %1$s؟</string>
+    <string name="page_number_required">رقم الصفحة مطلوب</string>
+    <string name="enter_valid_number">ادخل رقم صحيح</string>
+    <string name="name_required">الاسم مطلوب</string>
+    <string name="debit_required">المبلغ مطلوب</string>
+    <string name="enter_valid_amount">ادخل مبلغ صحيح</string>
+    <string name="page_colon">صفحة: %1$d</string>
+    <string name="error_message">خطأ: %1$s</string>
+</resources>

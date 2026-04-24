@@ -11,6 +11,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+sealed class SaveError {
+    data class PageNumberTaken(val pageNumber: Int) : SaveError()
+    data class SaveFailed(val message: String) : SaveError()
+}
+
+sealed class DeleteError {
+    data class DeleteFailed(val message: String) : DeleteError()
+}
+
 class CustomerDetailViewModel(
     private val customerId: Long,
     private val repository: CustomerRepository
@@ -22,22 +31,25 @@ class CustomerDetailViewModel(
             initialValue = null
         )
 
-    private val _isEditing = MutableStateFlow(false)
-    val isEditing: StateFlow<Boolean> = _isEditing.asStateFlow()
+    private val _showEditDialog = MutableStateFlow(false)
+    val showEditDialog: StateFlow<Boolean> = _showEditDialog.asStateFlow()
 
     private val _showDeleteDialog = MutableStateFlow(false)
     val showDeleteDialog: StateFlow<Boolean> = _showDeleteDialog.asStateFlow()
 
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    private val _saveError = MutableStateFlow<SaveError?>(null)
+    val saveError: StateFlow<SaveError?> = _saveError.asStateFlow()
 
-    fun startEditing() {
-        _isEditing.value = true
+    private val _deleteError = MutableStateFlow<DeleteError?>(null)
+    val deleteError: StateFlow<DeleteError?> = _deleteError.asStateFlow()
+
+    fun showEditDialog() {
+        _showEditDialog.value = true
     }
 
-    fun cancelEditing() {
-        _isEditing.value = false
-        _error.value = null
+    fun hideEditDialog() {
+        _showEditDialog.value = false
+        _saveError.value = null
     }
 
     fun showDeleteConfirmation() {
@@ -58,7 +70,7 @@ class CustomerDetailViewModel(
             try {
                 val isPageTaken = repository.isPageNumberTaken(pageNumber, customerId)
                 if (isPageTaken) {
-                    _error.value = "Page number $pageNumber is already in use"
+                    _saveError.value = SaveError.PageNumberTaken(pageNumber)
                     return@launch
                 }
 
@@ -69,11 +81,11 @@ class CustomerDetailViewModel(
                     debit = debit
                 )
                 repository.updateCustomer(updatedCustomer)
-                _isEditing.value = false
-                _error.value = null
+                _showEditDialog.value = false
+                _saveError.value = null
                 onSuccess()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to save customer"
+                _saveError.value = SaveError.SaveFailed(e.message ?: "Unknown error")
             }
         }
     }
@@ -85,12 +97,16 @@ class CustomerDetailViewModel(
                 repository.deleteCustomer(customerId)
                 onSuccess()
             } catch (e: Exception) {
-                _error.value = e.message ?: "Failed to delete customer"
+                _deleteError.value = DeleteError.DeleteFailed(e.message ?: "Unknown error")
             }
         }
     }
 
-    fun clearError() {
-        _error.value = null
+    fun clearSaveError() {
+        _saveError.value = null
+    }
+
+    fun clearDeleteError() {
+        _deleteError.value = null
     }
 }

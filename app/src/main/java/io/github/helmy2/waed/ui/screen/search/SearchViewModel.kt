@@ -23,6 +23,11 @@ sealed class SearchUiState {
     data class Error(val message: String) : SearchUiState()
 }
 
+sealed class DialogError {
+    data class PageNumberTaken(val pageNumber: Int) : DialogError()
+    data class SaveFailed(val message: String) : DialogError()
+}
+
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 class SearchViewModel(
     private val repository: CustomerRepository
@@ -37,8 +42,8 @@ class SearchViewModel(
     private val _dialogCustomer = MutableStateFlow<CustomerRecord?>(null)
     val dialogCustomer: StateFlow<CustomerRecord?> = _dialogCustomer.asStateFlow()
 
-    private val _dialogError = MutableStateFlow<String?>(null)
-    val dialogError: StateFlow<String?> = _dialogError.asStateFlow()
+    private val _dialogError = MutableStateFlow<DialogError?>(null)
+    val dialogError: StateFlow<DialogError?> = _dialogError.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<SearchUiState> = _searchQuery
@@ -113,7 +118,7 @@ class SearchViewModel(
             try {
                 val isPageTaken = repository.isPageNumberTaken(customer.pageNumber, customer.id)
                 if (isPageTaken) {
-                    _dialogError.value = "Page number ${customer.pageNumber} is already in use"
+                    _dialogError.value = DialogError.PageNumberTaken(customer.pageNumber)
                     return@launch
                 }
 
@@ -124,7 +129,7 @@ class SearchViewModel(
                 }
                 dismissDialog()
             } catch (e: Exception) {
-                _dialogError.value = e.message ?: "Failed to save customer"
+                _dialogError.value = DialogError.SaveFailed(e.message ?: "Unknown error")
             }
         }
     }

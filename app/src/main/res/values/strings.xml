@@ -1,3 +1,31 @@
 <resources>
     <string name="app_name">Waed</string>
+    <string name="customer_name">Customer Name</string>
+    <string name="page_number">Page Number</string>
+    <string name="debit_amount">Debit Amount</string>
+    <string name="add_customer">Add Customer</string>
+    <string name="edit_customer">Edit Customer</string>
+    <string name="customer_details">Customer Details</string>
+    <string name="delete_customer">Delete Customer</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+    <string name="back">Back</string>
+    <string name="search_by_name_or_page">Search by name or page number</string>
+    <string name="no_customer_found">No customer found</string>
+    <string name="loading">Loading…</string>
+    <string name="page_number_already_in_use">Page number %1$d is already in use</string>
+    <string name="failed_to_save">Failed to save customer</string>
+    <string name="failed_to_delete">Failed to delete customer</string>
+    <string name="are_you_sure_delete">Are you sure you want to delete %1$s?</string>
+    <string name="page_number_required">Page number is required</string>
+    <string name="enter_valid_number">Enter a valid number</string>
+    <string name="name_required">Name is required</string>
+    <string name="debit_required">Debit is required</string>
+    <string name="enter_valid_amount">Enter a valid amount</string>
+    <string name="page_colon">Page: %1$d</string>
+    <string name="error_message">Error: %1$s</string>
 </resources>
