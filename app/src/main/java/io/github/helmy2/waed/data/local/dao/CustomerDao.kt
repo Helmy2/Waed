@@ -22,7 +22,7 @@ interface CustomerDao {
 
     @Query("""
         SELECT * FROM customer_record
-        WHERE customerName LIKE :query || '%'
+        WHERE customerName LIKE '%' || :query || '%'
         ORDER BY pageNumber ASC
     """)
     fun searchByNameFlow(query: String): Flow<List<CustomerRecord>>
