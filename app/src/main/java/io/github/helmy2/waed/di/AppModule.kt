@@ -2,6 +2,7 @@ package io.github.helmy2.waed.di
 
 import androidx.room.Room
 import io.github.helmy2.waed.data.local.WaedDatabase
+import io.github.helmy2.waed.data.local.migrations.MIGRATION_1_2
 import io.github.helmy2.waed.data.local.dao.CustomerDao
 import io.github.helmy2.waed.data.repository.CustomerRepository
 import io.github.helmy2.waed.ui.screen.detail.CustomerDetailViewModel
@@ -17,7 +18,7 @@ val appModule = module {
             androidContext(),
             WaedDatabase::class.java,
             "waed_database"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
     }
 
     single<CustomerDao> {

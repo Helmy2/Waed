@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CustomerDao {
 
-    @Query("SELECT * FROM customer_record ORDER BY customerName ASC")
+    @Query("SELECT * FROM customer_record ORDER BY pageNumber ASC")
     fun getAllCustomers(): Flow<List<CustomerRecord>>
 
     @Query("SELECT * FROM customer_record WHERE pageNumber = :pageNumber LIMIT 1")
@@ -21,10 +21,9 @@ interface CustomerDao {
     suspend fun checkPageNumberExists(pageNumber: Int, excludeId: Long = 0): CustomerRecord?
 
     @Query("""
-        SELECT customer_record.* FROM customer_record
-        JOIN customer_record_fts ON customer_record.customerName = customer_record_fts.customerName
-        WHERE customer_record_fts MATCH :query || '*'
-        ORDER BY customer_record.customerName ASC
+        SELECT * FROM customer_record
+        WHERE customerName LIKE :query || '%'
+        ORDER BY pageNumber ASC
     """)
     fun searchByNameFlow(query: String): Flow<List<CustomerRecord>>
 
